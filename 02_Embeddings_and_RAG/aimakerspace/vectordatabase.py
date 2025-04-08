@@ -1,6 +1,6 @@
 import numpy as np
 from collections import defaultdict
-from typing import List, Tuple, Callable
+from typing import List, Tuple, Callable, Literal
 from aimakerspace.openai_utils.embedding import EmbeddingModel
 import asyncio
 
@@ -12,11 +12,18 @@ def cosine_similarity(vector_a: np.array, vector_b: np.array) -> float:
     norm_b = np.linalg.norm(vector_b)
     return dot_product / (norm_a * norm_b)
 
+#Add a function to calculate the euclidean distance between two vectors
+def euclidean_distance(vector_a: np.array, vector_b: np.array) -> float:
+    """Computes the euclidean distance between two vectors."""
+    return np.linalg.norm(vector_a - vector_b)
+
 
 class VectorDatabase:
-    def __init__(self, embedding_model: EmbeddingModel = None):
+    def __init__(self, embedding_model: EmbeddingModel = None, distance_metric: Literal["cosine", "euclidean"] = "cosine"):
         self.vectors = defaultdict(np.array)
         self.embedding_model = embedding_model or EmbeddingModel()
+        self.distance_metric = distance_metric
+        self._distance_measure = cosine_similarity if distance_metric == "cosine" else euclidean_distance
 
     def insert(self, key: str, vector: np.array) -> None:
         self.vectors[key] = vector
@@ -25,19 +32,26 @@ class VectorDatabase:
         self,
         query_vector: np.array,
         k: int,
-        distance_measure: Callable = cosine_similarity,
+        distance_measure: Callable = None,
     ) -> List[Tuple[str, float]]:
+        # Use the instance's distance measure if none provided
+        distance_measure = distance_measure or self._distance_measure
+        
         scores = [
             (key, distance_measure(query_vector, vector))
             for key, vector in self.vectors.items()
         ]
-        return sorted(scores, key=lambda x: x[1], reverse=True)[:k]
+        
+        # For cosine similarity, higher is better (reverse=True)
+        # For euclidean distance, lower is better (reverse=False)
+        reverse = self.distance_metric == "cosine"
+        return sorted(scores, key=lambda x: x[1], reverse=reverse)[:k]
 
     def search_by_text(
         self,
         query_text: str,
         k: int,
-        distance_measure: Callable = cosine_similarity,
+        distance_measure: Callable = None,
         return_as_text: bool = False,
     ) -> List[Tuple[str, float]]:
         query_vector = self.embedding_model.get_embedding(query_text)
@@ -63,19 +77,19 @@ if __name__ == "__main__":
         "Look at this cute hamster munching on a piece of broccoli.",
     ]
 
-    vector_db = VectorDatabase()
-    vector_db = asyncio.run(vector_db.abuild_from_list(list_of_text))
+    # Test with cosine similarity (default)
+    vector_db_cosine = VectorDatabase(distance_metric="cosine")
+    vector_db_cosine = asyncio.run(vector_db_cosine.abuild_from_list(list_of_text))
     k = 2
 
-    searched_vector = vector_db.search_by_text("I think fruit is awesome!", k=k)
+    print("Using Cosine Similarity:")
+    searched_vector = vector_db_cosine.search_by_text("I think fruit is awesome!", k=k)
     print(f"Closest {k} vector(s):", searched_vector)
 
-    retrieved_vector = vector_db.retrieve_from_key(
-        "I like to eat broccoli and bananas."
-    )
-    print("Retrieved vector:", retrieved_vector)
+    # Test with euclidean distance
+    vector_db_euclidean = VectorDatabase(distance_metric="euclidean")
+    vector_db_euclidean = asyncio.run(vector_db_euclidean.abuild_from_list(list_of_text))
 
-    relevant_texts = vector_db.search_by_text(
-        "I think fruit is awesome!", k=k, return_as_text=True
-    )
-    print(f"Closest {k} text(s):", relevant_texts)
+    print("\nUsing Euclidean Distance:")
+    searched_vector = vector_db_euclidean.search_by_text("I think fruit is awesome!", k=k)
+    print(f"Closest {k} vector(s):", searched_vector)
