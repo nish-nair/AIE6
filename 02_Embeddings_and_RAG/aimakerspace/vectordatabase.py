@@ -23,7 +23,9 @@ class VectorDatabase:
         self.vectors = defaultdict(np.array)
         self.embedding_model = embedding_model or EmbeddingModel()
         self.distance_metric = distance_metric
-        self._distance_measure = cosine_similarity if distance_metric == "cosine" else euclidean_distance
+        self.distance_measure = cosine_similarity if distance_metric == "cosine" else euclidean_distance
+        print(f"Vector DB init Distance Metric: {self.distance_metric}")
+        print(f"Vector DB init  Distance Measure: {self.distance_measure.__name__}")   
 
     def insert(self, key: str, vector: np.array) -> None:
         self.vectors[key] = vector
@@ -32,16 +34,16 @@ class VectorDatabase:
         self,
         query_vector: np.array,
         k: int,
-        distance_measure: Callable = None,
+        #distance_measure: Callable = None,
     ) -> List[Tuple[str, float]]:
         # Use the instance's distance measure if none provided
-        distance_measure = distance_measure or self._distance_measure
+        #distance_measure = distance_measure or self._distance_measure
         
         scores = [
-            (key, distance_measure(query_vector, vector))
+            (key, self.distance_measure(query_vector, vector))
             for key, vector in self.vectors.items()
         ]
-        
+        print("search functionDistance Metric: ",self.distance_metric)
         # For cosine similarity, higher is better (reverse=True)
         # For euclidean distance, lower is better (reverse=False)
         reverse = self.distance_metric == "cosine"
@@ -51,11 +53,11 @@ class VectorDatabase:
         self,
         query_text: str,
         k: int,
-        distance_measure: Callable = None,
+        #distance_measure: Callable = None,
         return_as_text: bool = False,
     ) -> List[Tuple[str, float]]:
         query_vector = self.embedding_model.get_embedding(query_text)
-        results = self.search(query_vector, k, distance_measure)
+        results = self.search(query_vector, k)
         return [result[0] for result in results] if return_as_text else results
 
     def retrieve_from_key(self, key: str) -> np.array:
