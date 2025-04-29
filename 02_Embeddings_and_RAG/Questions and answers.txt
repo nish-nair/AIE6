@@ -4,15 +4,11 @@ The default embedding dimension of `text-embedding-3-small` is 1536.
 
 1. Is there any way to modify this dimension?
 ANSWER:  Yes. We can use the dimensions  parameter in the request body to set the needed dimensions.
-
 2. What technique does OpenAI use to achieve this? 
 ANSWER: Open AI used Matryoshka Representation Learning (MRL) so that developers can shorten embdeddings 
-by creating coarse-to-fine, adaptable embeddings that adjust to different computational needs without extra
- inference cost. 
-MRL fits easily into existing training pipelines and produces flexible embeddings that are as accurate
- as (or better than) fixed-size ones. 
-It enables up to 14× smaller embeddings, 14× faster retrieval speeds, and up to 2% accuracy gains in 
-few-shot tasks, while maintaining robustness.
+by creating coarse-to-fine, adaptable embeddings that adjust to different computational needs without extra inference cost. 
+MRL fits easily into existing training pipelines and produces flexible embeddings that are as accurate as (or better than) fixed-size ones. 
+It enables up to 14× smaller embeddings, 14× faster retrieval speeds, and up to 2% accuracy gains in few-shot tasks, while maintaining robustness.
 
 
 #### ❓Question #2:
@@ -20,9 +16,8 @@ few-shot tasks, while maintaining robustness.
 What are the benefits of using an `async` approach to collecting our embeddings?
 ANSWER: 
 - In async, we can send run multiple embedding requests concurrently instead of waiting 
-    for one request to complete before sending the next one. 
-- Execution is not blocked, so other tasks can be completed while waiting for embedding requests to
- be completed. 
+    for one request to complete before sendin the next one. 
+- execution is not blocked, so other tasks can be completed while waiting for embedding requests to be completed. 
 - When number of requests increases, async approach scales better. 
 
 #### ❓ Question #3:
@@ -34,12 +29,8 @@ In newer models, the best way to get deterministic outputs is to use the seed pa
 The same prompt will produce the same output every time. 
 
 The other ways to make the response as deterministic as possible: 
- - set temperature =0 (least randomness), and fix the value of all these parameters top_p,
-  frequency_penalty, presence_penalty
- - To achieve maximum reproducibility long-term, lock to a specific version (gpt-4-0125-preview, 
- text-embedding-3-small, etc.).
-
-
+ - set temperature =0 (least randomness), and fix the value of all these parameters top_p, frequency_penalty, presence_penalty
+ - To achieve maximum reproducibility long-term, lock to a specific version (gpt-4-0125-preview, text-embedding-3-small, etc.).
 
 
 #### ❓ Question #4:
@@ -49,11 +40,8 @@ What is that strategy called?
 
 ANSWER: Chain-of-Thought (CoT) Prompting makes the LLM give a thoughtful detailed response:
 
-Strategy is to explicitly prompting the LLM to "think step by step" or to break down the problem into 
-smaller, logical steps. By doing so,we guide the model to generate a more structured and reasoned response,
- which often leads to greater accuracy and detail.
+Strategy is to explicitly prompting the LLM to "think step by step" or to break down the problem into smaller, logical steps. By doing so,we guide the model to generate a more structured and reasoned response, which often leads to greater accuracy and detail.
 Example: "Let's work this out step by step." or "Explain your reasoning in detail."
-Why it works: It encourages the model to generate intermediate reasoning steps, which can act 
-as a form of self-reflection and improve the quality of the final output.
+Why it works: It encourages the model to generate intermediate reasoning steps, which can act as a form of self-reflection and improve the quality of the final output.
 
 
